@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>파천황의 서재</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --s1: #141414;
+  --s2: #1c1c1c;
+  --s3: #242424;
+  --b1: #2a2a2a;
+  --b2: #383838;
+  --accent: #c8f060;
+  --blue: #60c8f0;
+  --orange: #f0a060;
+  --red: #f06060;
+  --green: #60f090;
+  --yellow: #f0c060;
+  --text: #e8e8e0;
+  --t2: #888880;
+  --t3: #444440;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Noto Sans KR', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { overflow-x: hidden; background: #050505; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--sans);
+  min-height: 100vh; max-width: 480px; margin: 0 auto;
+  padding-bottom: 72px; overflow-x: hidden;
+}
+
+/* 헤더 */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,10,0.96); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--b1);
+  padding: 11px 16px; display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 0.08em; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.points-badge {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--s2); border: 1px solid var(--b1);
+  border-radius: 20px; padding: 4px 10px;
+  font-family: var(--mono); font-size: 12px; color: var(--accent);
+}
+.points-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.role-btn {
+  background: var(--s2); border: 1px solid var(--b1); border-radius: 20px;
+  padding: 4px 10px; font-size: 11px; color: var(--t2); cursor: pointer;
+  font-family: var(--sans); transition: all 0.2s;
+}
+.role-btn:active { border-color: var(--b2); color: var(--text); }
+
+/* 탭바 */
+.tabbar {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: rgba(12,12,12,0.97); backdrop-filter: blur(12px);
+  border-top: 1px solid var(--b1); display: flex; z-index: 100;
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 9px 0 10px; cursor: pointer; transition: color 0.2s;
+  color: var(--t3); font-size: 10px; gap: 3px;
+  border: none; background: transparent; font-family: var(--sans);
+}
+.tab.on { color: var(--accent); }
+.tab-ico { font-size: 19px; }
+
+/* 화면 */
+.screen { display: none; padding: 14px 14px 0; }
+.screen.on { display: block; animation: fadeUp 0.25s ease; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 카드 */
+.card {
+  background: var(--s1); border: 1px solid var(--b1);
+  border-radius: 14px; padding: 15px; margin-bottom: 10px;
+}
+.card-tag { font-family: var(--mono); font-size: 10px; color: var(--t3); letter-spacing: 0.15em; margin-bottom: 6px; }
+.card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.card-desc { font-size: 13px; color: var(--t2); line-height: 1.6; margin-bottom: 14px; }
+
+/* 섹션 */
+.sec { font-size: 10px; font-family: var(--mono); color: var(--t3); letter-spacing: 0.15em; margin-bottom: 9px; }
+
+/* 통계 */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.stat-box { background: var(--s2); border-radius: 10px; padding: 13px; }
+.stat-val { font-family: var(--mono); font-size: 24px; font-weight: 600; color: var(--accent); margin-bottom: 2px; }
+.stat-lbl { font-size: 11px; color: var(--t3); }
+
+/* 질문 아이템 */
+.q-item {
+  background: var(--s1); border: 1px solid var(--b1); border-radius: 12px;
+  padding: 13px; margin-bottom: 9px; cursor: pointer; transition: border-color 0.2s;
+}
+.q-item:active { border-color: var(--b2); }
+.q-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.q-avatar {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--s3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; flex-shrink: 0;
+}
+.q-meta { flex: 1; }
+.q-name { font-size: 13px; font-weight: 500; }
+.q-time { font-size: 11px; color: var(--t2); font-family: var(--mono); }
+.q-status { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-family: var(--mono); white-space: nowrap; }
+.s-wait     { background: rgba(240,160,96,0.15); color: var(--orange); }
+.s-thinking { background: rgba(96,200,240,0.15); color: var(--blue); }
+.s-done     { background: rgba(96,240,144,0.15); color: var(--green); }
+.q-body { display: flex; gap: 10px; align-items: flex-start; }
+.q-thumb { width: 58px; height: 58px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--b1); background: var(--s2); }
+.q-txt { font-size: 13px; color: var(--t2); line-height: 1.5; flex: 1; }
+.q-foot { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.diff-tag { font-size: 10px; font-family: var(--mono); padding: 2px 7px; border-radius: 20px; }
+.d1 { background: rgba(96,240,144,0.1);  color: var(--green); }
+.d2 { background: rgba(240,192,96,0.1);  color: var(--yellow); }
+.d3 { background: rgba(240,160,96,0.1);  color: var(--orange); }
+.d4 { background: rgba(240,96,96,0.1);   color: var(--red); }
+
+/* 빈 상태 */
+.empty { text-align: center; padding: 36px 20px; color: var(--t3); }
+.empty-ico { font-size: 30px; margin-bottom: 9px; }
+.empty-txt { font-size: 14px; color: var(--t2); margin-bottom: 3px; }
+.empty-sub { font-size: 12px; }
+
+/* 업로드 */
+.upload-area {
+  border: 1.5px dashed var(--b2); border-radius: 10px;
+  padding: 22px; text-align: center; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 11px; position: relative;
+}
+.upload-area:active { border-color: var(--accent); background: rgba(200,240,96,0.03); }
+.upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 16px; width: 100%; height: 100%; }
+.upload-ico { font-size: 22px; margin-bottom: 5px; }
+.upload-txt { font-size: 13px; color: var(--t2); }
+.upload-sub { font-size: 11px; color: var(--t3); font-family: var(--mono); margin-top: 2px; }
+.preview-wrap { position: relative; margin-bottom: 11px; }
+.preview-img { width: 100%; border-radius: 10px; max-height: 220px; object-fit: cover; display: block; }
+.preview-rm {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(0,0,0,0.72); border: none; border-radius: 50%;
+  width: 27px; height: 27px; color: var(--text); cursor: pointer;
+  font-size: 13px; display: flex; align-items: center; justify-content: center;
+}
+
+/* 난이도 */
+.diff-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 11px; }
+.diff-btn {
+  padding: 9px 4px; border-radius: 8px; border: 1px solid var(--b1);
+  background: transparent; text-align: center; cursor: pointer;
+  transition: all 0.15s; font-family: var(--sans); color: var(--t2); font-size: 12px;
+}
+.diff-btn .cost { font-family: var(--mono); font-size: 10px; margin-top: 2px; color: var(--t3); }
+.diff-btn.on-1 { border-color: var(--green);  color: var(--green);  background: rgba(96,240,144,0.08); }
+.diff-btn.on-2 { border-color: var(--yellow); color: var(--yellow); background: rgba(240,192,96,0.08); }
+.diff-btn.on-3 { border-color: var(--orange); color: var(--orange); background: rgba(240,160,96,0.08); }
+.diff-btn.on-4 { border-color: var(--red);    color: var(--red);    background: rgba(240,96,96,0.08); }
+
+/* 입력 */
+textarea, input[type=text] {
+  width: 100%; background: var(--s2); border: 1px solid var(--b1);
+  border-radius: 10px; padding: 11px 13px; font-family: var(--sans);
+  font-size: 14px; color: var(--text); outline: none; resize: none;
+  transition: border-color 0.2s; line-height: 1.6; margin-bottom: 11px;
+}
+textarea:focus, input[type=text]:focus { border-color: var(--accent); }
+textarea::placeholder, input::placeholder { color: var(--t3); }
+
+/* 버튼 */
+.btn {
+  width: 100%; padding: 13px; border-radius: 10px; border: none;
+  font-family: var(--sans); font-size: 15px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; display: block;
+}
+.btn-primary { background: var(--accent); color: #0a0a0a; }
+.btn-primary:active { transform: scale(0.98); opacity: 0.88; }
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+.btn-ghost { background: transparent; color: var(--t2); border: 1px solid var(--b1); margin-top: 8px; }
+.btn-ghost:active { border-color: var(--b2); }
+
+/* 배너 */
+.banner {
+  background: rgba(240,96,96,0.08); border: 1px solid rgba(240,96,96,0.2);
+  border-radius: 10px; padding: 11px 13px; margin-bottom: 11px;
+  font-size: 12px; color: var(--red); display: flex; align-items: center; gap: 7px;
+}
+
+/* 타이머 */
+.timer-wrap { text-align: center; padding: 6px 0 14px; }
+.ring-wrap { position: relative; width: 156px; height: 156px; margin: 0 auto 10px; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.timer-num { font-family: var(--mono); font-size: 25px; font-weight: 600; color: var(--accent); line-height: 1; }
+.timer-lbl { font-size: 10px; color: var(--t3); font-family: var(--mono); margin-top: 2px; }
+.progress-bar { background: var(--b1); border-radius: 4px; height: 3px; margin-bottom: 12px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 1s linear; }
+
+/* 힌트 */
+.hint-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px; border-radius: 10px; border: 1px solid var(--b1);
+  margin-bottom: 8px; transition: all 0.3s;
+}
+.hint-row.locked    { opacity: 0.42; }
+.hint-row.open      { border-color: rgba(200,240,96,0.3); background: rgba(200,240,96,0.04); }
+.hint-row.open-blue { border-color: rgba(96,200,240,0.3); background: rgba(96,200,240,0.04); }
+.hint-ico { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.hint-info { flex: 1; }
+.hint-name { font-size: 13px; font-weight: 500; margin-bottom: 1px; }
+.hint-sub  { font-size: 11px; color: var(--t2); }
+.hint-badge { font-size: 10px; font-family: var(--mono); padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.badge-lock      { background: var(--s2); color: var(--t3); }
+.badge-open      { background: rgba(200,240,96,0.15); color: var(--accent); }
+.badge-open-blue { background: rgba(96,200,240,0.15); color: var(--blue); }
+
+/* 멘토 버블 */
+.mentor-bubble {
+  background: var(--s2); border-left: 2px solid var(--accent);
+  border-radius: 0 10px 10px 0; padding: 11px 13px; margin-bottom: 11px;
+  font-size: 13px; color: var(--text); line-height: 1.6; font-style: italic;
+}
+
+/* 피드백 */
+.fb-row { display: flex; gap: 7px; margin-top: 11px; }
+.fb-input {
+  flex: 1; background: var(--s2); border: 1px solid var(--b1);
+  border-radius: 8px; padding: 9px 12px; font-family: var(--sans);
+  font-size: 13px; color: var(--text); outline: none;
+}
+.fb-input:focus { border-color: var(--blue); }
+.fb-send {
+  width: 38px; height: 38px; border-radius: 8px; border: none;
+  background: var(--blue); color: #0a0a0a; cursor: pointer;
+  font-size: 15px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* 답변 뷰 */
+.view-toggle { display: flex; border: 1px solid var(--b1); border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+.view-btn { flex: 1; padding: 7px 4px; font-size: 11px; color: var(--t2); background: transparent; border: none; cursor: pointer; font-family: var(--sans); transition: all 0.15s; }
+.view-btn.on { background: var(--s2); color: var(--text); font-weight: 500; }
+.answer-area {
+  border: 1px solid rgba(200,240,96,0.2); border-radius: 12px;
+  padding: 13px; background: rgba(200,240,96,0.02); margin-bottom: 11px;
+}
+.answer-lbl { font-size: 10px; font-family: var(--mono); color: var(--accent); letter-spacing: 0.1em; margin-bottom: 10px; }
+.answer-mock {
+  background: var(--s2); border-radius: 8px; aspect-ratio: 4/3;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--t3); margin-bottom: 10px; border: 1px solid var(--b1);
+}
+
+/* 후원 */
+.tip-row { display: flex; gap: 6px; }
+.tip-btn {
+  flex: 1; padding: 9px 4px; border-radius: 8px; border: 1px solid var(--b1);
+  background: transparent; font-size: 11px; color: var(--t2); cursor: pointer;
+  text-align: center; transition: all 0.15s; font-family: var(--sans); line-height: 1.6;
+}
+.tip-btn:active { border-color: var(--yellow); color: var(--yellow); }
+
+/* 오버레이 */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; overflow-y: auto; padding: 14px; display: none; }
+.overlay.on { display: block; }
+.overlay-inner { max-width: 480px; margin: 0 auto; }
+.ov-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.back-btn {
+  background: var(--s2); border: 1px solid var(--b1); border-radius: 8px;
+  padding: 7px 12px; color: var(--t2); cursor: pointer; font-size: 13px; font-family: var(--sans);
+}
+.ov-title { font-size: 15px; font-weight: 700; }
+
+/* 이미지 확대 */
+.zoom-ov { position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 999; display: none; align-items: center; justify-content: center; cursor: zoom-out; }
+.zoom-ov.on { display: flex; }
+.zoom-ov img { max-width: 95vw; max-height: 95vh; object-fit: contain; border-radius: 8px; }
+
+/* 구분선 */
+.divider { height: 1px; background: var(--b1); margin: 13px 0; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- 이미지 확대 -->
+<div class="zoom-ov" id="zoomOv" onclick="closeZoom()">
+  <img id="zoomImg" src="" alt="">
+</div>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="logo">파천황의 서재</div>
+  <div class="header-right">
+    <div class="points-badge">
+      <div class="points-dot"></div>
+      <span id="pointsDisplay">0P</span>
+    </div>
+    <button class="role-btn" id="roleBtn" onclick="toggleRole()">선생님 뷰 →</button>
+  </div>
+</div>
+
+<!-- 학생 화면 -->
+<div id="studentWrap">
+
+  <!-- 홈 -->
+  <div class="screen on" id="s-home">
+    <div class="sec">내 질문 현황</div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val" id="totalCount">0</div><div class="stat-lbl">전체 질문</div></div>
+      <div class="stat-box"><div class="stat-val" id="waitCount">0</div><div class="stat-lbl">답변 대기</div></div>
+    </div>
+    <div class="sec">최근 질문</div>
+    <div id="homeList"></div>
+  </div>
+
+  <!-- 질문 올리기 -->
+  <div class="screen" id="s-ask">
+    <div class="card">
+      <div class="card-tag">STEP 01</div>
+      <div class="card-title">질문 올리기</div>
+      <div class="card-desc">문제 사진 + 막힌 부분을 올리면 선생님이 답변해드려요.</div>
+
+      <div class="banner hidden" id="limitBanner">⚠ 미답변 질문이 5개입니다. 답변 후 새 질문을 올릴 수 있어요.</div>
+
+      <div id="uploadWrap">
+        <div class="upload-area">
+          <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
+          <div class="upload-ico">📷</div>
+          <div class="upload-txt">문제 사진 올리기</div>
+          <div class="upload-sub">탭해서 선택</div>
+        </div>
+      </div>
+      <div id="previewWrap" class="hidden">
+        <div class="preview-wrap">
+          <img id="previewImg" class="preview-img" src="" alt="">
+          <button class="preview-rm" onclick="removeImg()">✕</button>
+        </div>
+      </div>
+
+      <div class="sec">난이도 선택</div>
+      <div class="diff-grid">
+        <button class="diff-btn" onclick="pickDiff(1,this)">하<div class="cost">-1P</div></button>
+        <button class="diff-btn" onclick="pickDiff(2,this)">중<div class="cost">-2P</div></button>
+        <button class="diff-btn" onclick="pickDiff(3,this)">상<div class="cost">-3P</div></button>
+        <button class="diff-btn" onclick="pickDiff(4,this)">킬러<div class="cost">-5P</div></button>
+      </div>
+
+      <textarea id="qText" rows="3" placeholder="어디서 막혔는지 간단히 적어주세요 (선택)"></textarea>
+      <button class="btn btn-primary" id="submitQBtn" onclick="submitQuestion()" disabled>질문 등록하기</button>
+    </div>
+  </div>
+
+  <!-- 타이머 -->
+  <div class="screen" id="s-timer">
+    <div class="card">
+      <div class="card-tag">고민 중</div>
+      <div class="timer-wrap">
+        <div class="ring-wrap">
+          <svg width="156" height="156" viewBox="0 0 156 156">
+            <circle fill="none" stroke="var(--b1)" stroke-width="6" cx="78" cy="78" r="68"/>
+            <circle id="timerRing" fill="none" stroke="var(--accent)" stroke-width="6"
+              cx="78" cy="78" r="68" stroke-dasharray="427.26" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div class="timer-num" id="timerNum">24:00:00</div>
+            <div class="timer-lbl">남은 시간</div>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="timerProg" style="width:100%"></div></div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:flex-start;background:var(--s2);border-radius:10px;padding:11px;margin-bottom:11px;">
+        <img id="activeQImg" class="q-thumb" src="" alt="">
+        <div>
+          <div id="activeQText" style="font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:3px;"></div>
+          <div id="activeQDiff" style="font-size:11px;font-family:var(--mono);"></div>
+        </div>
+      </div>
+
+      <div class="mentor-bubble" id="mentorBubble">"천천히 해봐요. 문제를 처음부터 다시 읽어봐요."</div>
+
+      <div class="hint-row locked" id="hintVideo">
+        <div class="hint-ico" style="background:rgba(96,200,240,0.1)">▶</div>
+        <div class="hint-info">
+          <div class="hint-name">유튜브 힌트 영상</div>
+          <div class="hint-sub" id="hintVideoSub">타이머 50% 후 해금</div>
+        </div>
+        <div class="hint-badge badge-lock" id="hintVideoBadge">잠금</div>
+      </div>
+
+      <div class="hint-row locked" id="hintAnswer">
+        <div class="hint-ico" style="background:rgba(200,240,96,0.1)">✏️</div>
+        <div class="hint-info">
+          <div class="hint-name">선생님 손글씨 답변</div>
+          <div class="hint-sub">타이머 종료 후 해금</div>
+        </div>
+        <div class="hint-badge badge-lock" id="hintAnswerBadge">잠금</div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:6px;">선생님께 지금 상황 전달하기</div>
+      <div class="fb-row">
+        <input class="fb-input" id="fbInput" placeholder="막힌 부분 추가로 알려주세요...">
+        <button class="fb-send" onclick="sendFeedback()">→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 답변 확인 -->
+  <div class="screen" id="s-answer">
+    <div class="card">
+      <div class="card-tag">답변 도착</div>
+      <div class="card-title">선생님 답변</div>
+      <div class="card-desc">충분히 고민하셨나요? 풀이를 확인해보세요.</div>
+
+      <div style="display:flex;gap:10px;align-items:flex-start;background:var(--s2);border-radius:10px;padding:11px;margin-bottom:11px;">
+        <img id="ansMyImg" class="q-thumb" src="" alt="">
+        <div>
+          <div id="ansMyText" style="font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:3px;"></div>
+          <div id="ansMyDiff" style="font-size:11px;font-family:var(--mono);"></div>
+        </div>
+      </div>
+
+      <div class="answer-area">
+        <div class="answer-lbl">선생님 답변</div>
+        <div class="view-toggle">
+          <button class="view-btn on" onclick="setView('Hand',this)">손글씨 원본</button>
+          <button class="view-btn" onclick="setView('Text',this)">텍스트</button>
+          <button class="view-btn" onclick="setView('Both',this)">둘 다</button>
+        </div>
+
+        <div id="vHand">
+          <img id="ansHandImg" style="width:100%;border-radius:8px;display:none;cursor:zoom-in;" src="" alt="" onclick="openZoom(this.src)">
+          <div id="ansHandMock" class="answer-mock">✏️ 선생님 손글씨 답변 사진</div>
+        </div>
+        <div id="vText" class="hidden">
+          <div id="ansTextContent" style="background:var(--s2);border-radius:8px;padding:12px;font-size:13px;color:var(--t2);line-height:1.8;">텍스트 답변이 없어요.</div>
+        </div>
+        <div id="vBoth" class="hidden">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <img id="ansBothImg" style="width:100%;border-radius:8px;aspect-ratio:4/3;object-fit:cover;display:none;cursor:zoom-in;" src="" alt="" onclick="openZoom(this.src)">
+            <div id="ansBothMock" class="answer-mock" style="font-size:11px;">✏️ 원본</div>
+            <div id="ansBothText" style="background:var(--s2);border-radius:8px;padding:10px;font-size:12px;color:var(--t2);line-height:1.7;">텍스트 없음</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:8px;">이 답변이 도움됐나요?</div>
+        <div class="tip-row">
+          <button class="tip-btn" onclick="tipTeacher(1)">⭐ 감사해요<br><span style="font-family:var(--mono)">1P</span></button>
+          <button class="tip-btn" onclick="tipTeacher(3)">🔥 최고예요<br><span style="font-family:var(--mono)">3P</span></button>
+          <button class="tip-btn" onclick="tipTeacher(5)">💡 인생 해설<br><span style="font-family:var(--mono)">5P</span></button>
+        </div>
+      </div>
+
+      <div class="hint-row open-blue" style="margin-bottom:11px;">
+        <div class="hint-ico" style="background:rgba(96,200,240,0.15)">▶</div>
+        <div class="hint-info">
+          <div class="hint-name" style="color:var(--blue)">관련 유튜브 영상</div>
+          <div class="hint-sub">파천황의 서재 채널</div>
+        </div>
+        <div class="hint-badge badge-open-blue">해금</div>
+      </div>
+
+      <button class="btn btn-primary" onclick="goTab('s-ask','tab-ask')">새 질문 올리기</button>
+    </div>
+  </div>
+
+</div><!-- /studentWrap -->
+
+<!-- 선생님 화면 -->
+<div id="teacherWrap" class="hidden">
+  <div class="screen on" id="t-home">
+    <div class="sec">답변 대기 목록</div>
+    <div id="teacherList"></div>
+  </div>
+</div>
+
+<!-- 선생님 답변 오버레이 -->
+<div class="overlay" id="teacherOv">
+  <div class="overlay-inner">
+    <div class="ov-header">
+      <button class="back-btn" onclick="closeOv()">← 뒤로</button>
+      <div class="ov-title" id="ovTitle">질문 상세</div>
+    </div>
+    <div id="ovQImg" style="margin-bottom:11px;"></div>
+    <div class="card">
+      <div class="card-tag">학생 질문</div>
+      <div id="ovQText" style="font-size:14px;color:var(--t2);line-height:1.6;margin-bottom:7px;"></div>
+      <div id="ovQMeta" style="font-size:11px;font-family:var(--mono);color:var(--t3);"></div>
+    </div>
+    <div class="card">
+      <div class="card-tag">선생님 답변 작성</div>
+      <div class="upload-area" style="margin-bottom:8px;">
+        <input type="file" id="ansFileInput" accept="image/*" onchange="handleAnsFile(event)">
+        <div class="upload-ico">✏️</div>
+        <div class="upload-txt">손글씨 답변 사진 올리기</div>
+        <div class="upload-sub">탭해서 선택</div>
+      </div>
+      <button type="button" onclick="pickSampleAns()"
+        style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--b1);background:var(--s2);color:var(--t2);font-family:var(--sans);font-size:13px;cursor:pointer;margin-bottom:11px;">
+        ✏️ 샘플 답변으로 테스트하기
+      </button>
+      <div id="ansPreviewWrap" class="hidden" style="margin-bottom:11px;">
+        <img id="ansPreviewImg" style="width:100%;border-radius:10px;max-height:200px;object-fit:cover;" src="" alt="">
+      </div>
+      <textarea id="teacherAnsText" rows="4" placeholder="텍스트 답변 (선택)"></textarea>
+      <button class="btn btn-primary" id="ansSubmitBtn" onclick="submitAnswer()" disabled>답변 등록하기</button>
+      <button class="btn btn-ghost" onclick="closeOv()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 학생 탭바 -->
+<div class="tabbar" id="studentTabbar">
+  <button class="tab on" id="tab-home"   onclick="goTab('s-home','tab-home')"><div class="tab-ico">🏠</div><div>홈</div></button>
+  <button class="tab"   id="tab-ask"    onclick="goTab('s-ask','tab-ask')"><div class="tab-ico">+</div><div>질문</div></button>
+  <button class="tab"   id="tab-timer"  onclick="goTab('s-timer','tab-timer')"><div class="tab-ico">⏱</div><div>타이머</div></button>
+  <button class="tab"   id="tab-answer" onclick="goTab('s-answer','tab-answer')"><div class="tab-ico">✅</div><div>답변</div></button>
+</div>
+
+<!-- 선생님 탭바 -->
+<div class="tabbar hidden" id="teacherTabbar">
+  <button class="tab on"><div class="tab-ico">📋</div><div>질문 목록</div></button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+
+// ── Supabase 설정 ──
+const SUPA_URL = 'https://pdguswlgpneawjjufsjf.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkZ3Vzd2xncG5lYXdqanVmc2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjU4NjMsImV4cCI6MjA5MjcwMTg2M30.eREXMBNo5nZx5NFcmE2GJewat7QqhjVDBXY3i195OlQ';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── 상수 ──
+const DIFF_COSTS  = {1:1,2:2,3:3,4:5};
+const DIFF_NAMES  = {1:'하',2:'중',3:'상',4:'킬러'};
+const DIFF_CLS    = {1:'d1',2:'d2',3:'d3',4:'d4'};
+const DIFF_COLORS = {1:'var(--green)',2:'var(--yellow)',3:'var(--orange)',4:'var(--red)'};
+const CIRC        = 427.26; // 2π × 68
+
+const MENTORS = {
+  early: ['"천천히 해봐요. 문제를 처음부터 다시 읽어봐요."','"아직 시간 있어요. 조건부터 정리해봐요."','"막막하면 아는 것부터 써봐요."'],
+  mid:   ['"실마리 잡혔어요? 유튜브 힌트를 봐도 돼요."','"이 부분에서 막혔는지 알면 절반은 온 거예요."','"포기하기엔 너무 아깝잖아요 ㅋㅋ"'],
+  late:  ['"거의 다 왔어요. 끝까지 버텨봐요."','"막힌 게 아니야. 아직 안 본 거야."','"지금 이 답답함이 실력이 되는 중이야."'],
+  done:  ['"선생님 답변 확인해봐요. 내 풀이 먼저 정리해봐요."','"고민 없이 얻은 답은 네 것이 아니야. 잘 버텼어요."']
+};
+
+// ── localStorage 키 ──
+const KEY_Q  = 'pch_questions';
+const KEY_PT = 'pch_points';
+
+// ── 상태 ──
+let isTeacher    = false;
+let selectedDiff = 0;
+let imgSrc       = '';
+let ansImgSrc    = '';
+let currentQId   = null;
+let timerIv      = null;
+let activeQ      = null;
+
+// ── 포인트 (localStorage 임시 유지 — 추후 Supabase users 테이블로 이전) ──
+function getPoints()   { const v = localStorage.getItem(KEY_PT); return v !== null ? parseInt(v,10) : 100; }
+function savePoints(p) { localStorage.setItem(KEY_PT, String(p)); }
+let points = getPoints();
+
+// ── 질문 목록 — Supabase ──
+async function getQs() {
+  try {
+    const { data, error } = await sb.from('questions').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return data.map(q => ({
+      id:         q.id,
+      img:        q.img_url || '',
+      text:       q.text || '',
+      diff:       q.diff,
+      status:     q.status,
+      createdAt:  q.created_at,
+      timerStart: q.timer_start,
+      totalSecs:  q.total_secs,
+      feedbacks:  [],
+      answer:     null,
+      tip:        0
+    }));
+  } catch(e) {
+    console.error('getQs error:', e);
+    return [];
+  }
+}
+
+async function saveQ(q) {
+  try {
+    const { error } = await sb.from('questions').upsert({
+      id:          q.id === Date.now() ? undefined : q.id,
+      img_url:     q.img || '',
+      text:        q.text || '',
+      diff:        q.diff,
+      status:      q.status,
+      timer_start: q.timerStart,
+      total_secs:  q.totalSecs
+    });
+    if (error) throw error;
+  } catch(e) { console.error('saveQ error:', e); }
+}
+
+async function updateQStatus(id, status) {
+  try {
+    const { error } = await sb.from('questions').update({ status }).eq('id', id);
+    if (error) throw error;
+  } catch(e) { console.error('updateQStatus error:', e); }
+}
+
+async function saveAnswer(questionId, imgUrl, text) {
+  try {
+    const { error } = await sb.from('answers').insert({ question_id: questionId, img_url: imgUrl, text });
+    if (error) throw error;
+    await updateQStatus(questionId, 'done');
+  } catch(e) { console.error('saveAnswer error:', e); }
+}
+
+async function saveFeedback(questionId, text) {
+  try {
+    const { error } = await sb.from('feedbacks').insert({ question_id: questionId, text });
+    if (error) throw error;
+  } catch(e) { console.error('saveFeedback error:', e); }
+}
+
+async function getAnswerForQ(questionId) {
+  try {
+    const { data, error } = await sb.from('answers').select('*').eq('question_id', questionId).single();
+    if (error) return null;
+    return data;
+  } catch(e) { return null; }
+}
+
+async function getFeedbacksForQ(questionId) {
+  try {
+    const { data, error } = await sb.from('feedbacks').select('*').eq('question_id', questionId);
+    if (error) return [];
+    return data;
+  } catch(e) { return []; }
+}
+
+// ── 유틸 ──
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function rnd(a) { return a[Math.floor(Math.random()*a.length)]; }
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function renderPoints() {
+  document.getElementById('pointsDisplay').textContent = points + 'P';
+}
+
+// ── 역할 전환 ──
+function toggleRole() {
+  isTeacher = !isTeacher;
+  document.getElementById('studentWrap').classList.toggle('hidden', isTeacher);
+  document.getElementById('teacherWrap').classList.toggle('hidden', !isTeacher);
+  document.getElementById('studentTabbar').classList.toggle('hidden', isTeacher);
+  document.getElementById('teacherTabbar').classList.toggle('hidden', !isTeacher);
+  document.getElementById('roleBtn').textContent = isTeacher ? '학생 뷰 →' : '선생님 뷰 →';
+  if (isTeacher) renderTeacherList();
+  else renderHome();
+}
+
+// ── 탭 전환 ──
+function goTab(screenId, tabId) {
+  document.querySelectorAll('#studentWrap .screen').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('#studentTabbar .tab').forEach(t => t.classList.remove('on'));
+  document.getElementById(screenId).classList.add('on');
+  if (tabId) document.getElementById(tabId).classList.add('on');
+  if (screenId === 's-home')   renderHome();
+  if (screenId === 's-timer')  renderTimer();
+  if (screenId === 's-answer') {
+    const done = getQs().find(q => q.status === 'done');
+    if (done) renderAnswerScreen(done);
+  }
+}
+
+// ── 홈 렌더링 ──
+async function renderHome() {
+  const el = document.getElementById('homeList');
+  el.innerHTML = mkEmpty('⏳','불러오는 중...','');
+  const qs      = await getQs();
+  const pending = qs.filter(q => q.status==='wait'||q.status==='thinking').length;
+  document.getElementById('totalCount').textContent = qs.length;
+  document.getElementById('waitCount').textContent  = pending;
+  if (!qs.length) { el.innerHTML = mkEmpty('📝','아직 질문이 없어요','+ 탭에서 첫 질문을 올려봐요'); return; }
+  el.innerHTML = qs.slice(0,10).map(q => mkQItem(q,false)).join('');
+}
+
+function mkEmpty(ico,txt,sub) {
+  return `<div class="empty"><div class="empty-ico">${ico}</div><div class="empty-txt">${txt}</div><div class="empty-sub">${sub}</div></div>`;
+}
+
+function mkQItem(q, teacher) {
+  const elapsed = Math.floor((Date.now()-q.timerStart)/1000);
+  const left    = Math.max(0, q.totalSecs-elapsed);
+  const h = Math.floor(left/3600), m = Math.floor((left%3600)/60);
+  let badge = '';
+  if (q.status==='wait')     badge = `<span class="q-status s-wait">대기중</span>`;
+  else if (q.status==='thinking') badge = `<span class="q-status s-thinking">${h}h ${m}m</span>`;
+  else badge = `<span class="q-status s-done">답변완료</span>`;
+  const avStyle = teacher ? 'background:rgba(200,240,96,0.1);color:var(--accent)' : 'background:var(--s3);color:var(--t2)';
+  const fn = teacher ? `openTeacherQ(${q.id})` : `openQuestion(${q.id})`;
+  const fb = q.feedbacks && q.feedbacks.length ? `<span style="font-size:10px;color:var(--t3);font-family:var(--mono)">피드백 ${q.feedbacks.length}개</span>` : '';
+  return `<div class="q-item" onclick="${fn}">
+    <div class="q-row">
+      <div class="q-avatar" style="${avStyle}">${teacher?'학':'나'}</div>
+      <div class="q-meta"><div class="q-name">${teacher?'학생 질문':'내 질문'}</div><div class="q-time">${new Date(q.createdAt).toLocaleDateString('ko-KR')}</div></div>
+      ${badge}
+    </div>
+    <div class="q-body">
+      <img src="${q.img||''}" class="q-thumb" alt="">
+      <div class="q-txt">${esc(q.text)}</div>
+    </div>
+    <div class="q-foot"><span class="diff-tag ${DIFF_CLS[q.diff]}">${DIFF_NAMES[q.diff]}</span>${fb}</div>
+  </div>`;
+}
+
+// ── 질문 클릭 ──
+async function openQuestion(id) {
+  const qs = await getQs();
+  const q  = qs.find(q => q.id===id);
+  if (!q) return;
+  if (q.status==='done') { renderAnswerScreen(q); goTab('s-answer','tab-answer'); }
+  else { activeQ=q; goTab('s-timer','tab-timer'); startTimer(q); }
+}
+
+// ── 파일 업로드 ──
+function handleFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    imgSrc = ev.target.result;
+    document.getElementById('uploadWrap').classList.add('hidden');
+    document.getElementById('previewWrap').classList.remove('hidden');
+    document.getElementById('previewImg').src = imgSrc;
+    checkReady();
+  };
+  r.readAsDataURL(file);
+}
+
+function removeImg() {
+  imgSrc = '';
+  document.getElementById('uploadWrap').classList.remove('hidden');
+  document.getElementById('previewWrap').classList.add('hidden');
+  document.getElementById('previewImg').src = '';
+  document.getElementById('fileInput').value = '';
+  checkReady();
+}
+
+// ── 난이도 ──
+function pickDiff(d, btn) {
+  selectedDiff = d;
+  document.querySelectorAll('.diff-btn').forEach(b => b.className='diff-btn');
+  btn.classList.add('on-'+d);
+  checkReady();
+}
+
+// ── 제출 가능 여부 ──
+async function checkReady() {
+  const qs      = await getQs();
+  const pending = qs.filter(q=>q.status==='wait'||q.status==='thinking').length;
+  const banner  = document.getElementById('limitBanner');
+  const btn     = document.getElementById('submitQBtn');
+  if (pending>=5) { banner.classList.remove('hidden'); btn.disabled=true; }
+  else { banner.classList.add('hidden'); btn.disabled=!(imgSrc&&selectedDiff); }
+}
+
+// ── 질문 등록 ──
+async function submitQuestion() {
+  if (!imgSrc||!selectedDiff) return;
+  const cost = DIFF_COSTS[selectedDiff];
+  if (points<cost) { alert('포인트가 부족해요!'); return; }
+  points -= cost; savePoints(points); renderPoints();
+
+  const now = Date.now();
+  const q = {
+    id: now, img: imgSrc,
+    text: document.getElementById('qText').value.trim()||'막힌 부분이 있어요.',
+    diff: selectedDiff, status: 'thinking',
+    createdAt: new Date().toISOString(),
+    timerStart: now, totalSecs: 24*60*60,
+    feedbacks: [], answer: null, tip: 0
+  };
+
+  await saveQ(q);
+  activeQ = q;
+
+  imgSrc=''; selectedDiff=0;
+  document.getElementById('uploadWrap').classList.remove('hidden');
+  document.getElementById('previewWrap').classList.add('hidden');
+  document.getElementById('previewImg').src='';
+  document.getElementById('fileInput').value='';
+  document.getElementById('qText').value='';
+  document.querySelectorAll('.diff-btn').forEach(b=>b.className='diff-btn');
+  document.getElementById('submitQBtn').disabled=true;
+
+  goTab('s-timer','tab-timer');
+  startTimer(q);
+}
+
+// ── 타이머 ──
+function startTimer(q) {
+  clearInterval(timerIv);
+  activeQ = q;
+  renderTimerUI(q);
+
+  timerIv = setInterval(() => {
+    const elapsed = Math.floor((Date.now()-q.timerStart)/1000);
+    const left    = Math.max(0, q.totalSecs-elapsed);
+    const pct     = left/q.totalSecs;
+    const h=Math.floor(left/3600), m=Math.floor((left%3600)/60), s=left%60;
+    document.getElementById('timerNum').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+
+    const ring = document.getElementById('timerRing');
+    const numEl = document.getElementById('timerNum');
+    ring.style.strokeDashoffset = String(CIRC*(1-pct));
+    if (pct<=0.25)      { ring.style.stroke='var(--red)';    numEl.style.color='var(--red)'; }
+    else if (pct<=0.5)  { ring.style.stroke='var(--orange)'; numEl.style.color='var(--orange)'; }
+    else                { ring.style.stroke='var(--accent)'; numEl.style.color='var(--accent)'; }
+
+    document.getElementById('timerProg').style.width=(pct*100)+'%';
+
+    // 50% 힌트 해금
+    if (pct<=0.5 && document.getElementById('hintVideo').classList.contains('locked')) {
+      document.getElementById('hintVideo').className        = 'hint-row open-blue';
+      document.getElementById('hintVideoBadge').textContent = '해금!';
+      document.getElementById('hintVideoBadge').className   = 'hint-badge badge-open-blue';
+      document.getElementById('hintVideoSub').textContent   = '파천황의 서재 관련 영상';
+      document.getElementById('mentorBubble').textContent   = rnd(MENTORS.mid);
+    }
+
+    if (left<=0) {
+      clearInterval(timerIv);
+      document.getElementById('hintAnswer').className        = 'hint-row open';
+      document.getElementById('hintAnswerBadge').textContent = '해금!';
+      document.getElementById('hintAnswerBadge').className   = 'hint-badge badge-open';
+      document.getElementById('mentorBubble').textContent    = rnd(MENTORS.done);
+      points+=1; savePoints(points); renderPoints();
+      if (activeQ) updateQStatus(activeQ.id, 'done');
+      setTimeout(()=>goTab('s-answer','tab-answer'),1500);
+    }
+  }, 1000);
+}
+
+function renderTimerUI(q) {
+  if (!q) return;
+  document.getElementById('activeQImg').src           = q.img||'';
+  document.getElementById('activeQText').textContent  = q.text;
+  document.getElementById('activeQDiff').innerHTML    = `<span style="color:${DIFF_COLORS[q.diff]}">${DIFF_NAMES[q.diff]}</span> · ${new Date(q.createdAt).toLocaleDateString('ko-KR')}`;
+  document.getElementById('hintVideo').className        = 'hint-row locked';
+  document.getElementById('hintVideoBadge').textContent = '잠금';
+  document.getElementById('hintVideoBadge').className   = 'hint-badge badge-lock';
+  document.getElementById('hintAnswer').className       = 'hint-row locked';
+  document.getElementById('hintAnswerBadge').textContent= '잠금';
+  document.getElementById('hintAnswerBadge').className  = 'hint-badge badge-lock';
+  document.getElementById('mentorBubble').textContent   = rnd(MENTORS.early);
+}
+
+async function renderTimer() {
+  const qs     = await getQs();
+  const active = qs.find(q=>q.status==='thinking');
+  if (active) startTimer(active);
+  else {
+    document.getElementById('timerNum').textContent     = '00:00:00';
+    document.getElementById('mentorBubble').textContent = '"현재 고민 중인 질문이 없어요."';
+  }
+}
+
+// ── 피드백 ──
+async function sendFeedback() {
+  const input = document.getElementById('fbInput');
+  const val   = input.value.trim(); if (!val) return;
+  if (activeQ) await saveFeedback(activeQ.id, val);
+  input.value='';
+  input.placeholder='전달됐어요! 선생님이 확인하실 거예요 ✓';
+  setTimeout(()=>{input.placeholder='막힌 부분 추가로 알려주세요...';},2500);
+}
+
+// ── 답변 화면 ──
+function renderAnswerScreen(q) {
+  document.getElementById('ansMyImg').src          = q.img||'';
+  document.getElementById('ansMyText').textContent = q.text;
+  document.getElementById('ansMyDiff').innerHTML   = `<span style="color:${DIFF_COLORS[q.diff]}">${DIFF_NAMES[q.diff]}</span>`;
+  const hasImg = q.answer && q.answer.img;
+  document.getElementById('ansHandImg').style.display  = hasImg ? 'block' : 'none';
+  document.getElementById('ansHandMock').style.display = hasImg ? 'none'  : 'flex';
+  document.getElementById('ansBothImg').style.display  = hasImg ? 'block' : 'none';
+  document.getElementById('ansBothMock').style.display = hasImg ? 'none'  : 'flex';
+  if (hasImg) { document.getElementById('ansHandImg').src=''; document.getElementById('ansHandImg').src=q.answer.img; document.getElementById('ansBothImg').src=q.answer.img; }
+  const txt = (q.answer&&q.answer.text) ? q.answer.text : '텍스트 답변이 없어요.';
+  document.getElementById('ansTextContent').textContent = txt;
+  document.getElementById('ansBothText').textContent    = txt;
+}
+
+function setView(v, btn) {
+  ['Hand','Text','Both'].forEach(id=>document.getElementById('v'+id).classList.add('hidden'));
+  document.getElementById('v'+v).classList.remove('hidden');
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+// ── 후원 ──
+function tipTeacher(p) {
+  if (points<p) { alert('포인트가 부족해요!'); return; }
+  points-=p; savePoints(points); renderPoints();
+  alert(`${p}P 후원 완료! 선생님께 전달돼요 ⭐`);
+}
+
+// ── 이미지 확대 ──
+function openZoom(src) { document.getElementById('zoomImg').src=src; document.getElementById('zoomOv').classList.add('on'); }
+function closeZoom()   { document.getElementById('zoomOv').classList.remove('on'); }
+
+// ── 선생님 뷰 ──
+async function renderTeacherList() {
+  const el = document.getElementById('teacherList');
+  el.innerHTML = mkEmpty('⏳','불러오는 중...','');
+  const qs = await getQs();
+  if (!qs.length) { el.innerHTML=mkEmpty('🎯','아직 질문이 없어요','학생이 질문을 올리면 여기 표시돼요'); return; }
+  el.innerHTML = qs.map(q=>mkQItem(q,true)).join('');
+}
+
+async function openTeacherQ(id) {
+  currentQId = id;
+  const qs = await getQs();
+  const q  = qs.find(q=>q.id===id); if (!q) return;
+  const feedbacks = await getFeedbacksForQ(id);
+  document.getElementById('ovTitle').textContent = `${DIFF_NAMES[q.diff]} 난이도 질문`;
+  document.getElementById('ovQImg').innerHTML    = `<img src="${q.img||''}" style="width:100%;border-radius:12px;max-height:360px;object-fit:contain;background:var(--s2);padding:10px;">`;
+  document.getElementById('ovQText').textContent = q.text;
+  let meta = `난이도: ${DIFF_NAMES[q.diff]} · ${new Date(q.createdAt).toLocaleDateString('ko-KR')}`;
+  if (feedbacks.length) meta += `<br><br><span style="color:var(--orange)">학생 피드백:</span><br>`+feedbacks.map(f=>`• ${esc(f.text)}`).join('<br>');
+  document.getElementById('ovQMeta').innerHTML = meta;
+  ansImgSrc='';
+  document.getElementById('ansPreviewWrap').classList.add('hidden');
+  document.getElementById('ansPreviewImg').src='';
+  document.getElementById('ansFileInput').value='';
+  document.getElementById('teacherAnsText').value='';
+  document.getElementById('ansSubmitBtn').disabled=true;
+  document.getElementById('teacherOv').classList.add('on');
+}
+
+function closeOv() { document.getElementById('teacherOv').classList.remove('on'); currentQId=null; ansImgSrc=''; }
+
+function handleAnsFile(e) {
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    ansImgSrc=ev.target.result;
+    document.getElementById('ansPreviewWrap').classList.remove('hidden');
+    document.getElementById('ansPreviewImg').src=ansImgSrc;
+    document.getElementById('ansSubmitBtn').disabled=false;
+  };
+  r.readAsDataURL(file);
+}
+
+function pickSampleAns() {
+  const c=document.createElement('canvas'); c.width=600; c.height=400;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#f8f8f0'; ctx.fillRect(0,0,600,400);
+  ctx.fillStyle='#333'; ctx.font='bold 18px serif'; ctx.fillText('풀이 과정',30,45);
+  ctx.font='15px serif';
+  ctx.fillText('① CP⊥OP (접선의 성질)',30,85);
+  ctx.fillText('② ∠CPB = 90° (반원의 원주각)',30,115);
+  ctx.fillText('③ 사인법칙 적용 → AP 계산',30,145);
+  ctx.fillText('∴ AP × cos(∠ABC) = -√7/4',30,195);
+  ctx.strokeStyle='#c8f060'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(25,210); ctx.lineTo(580,210); ctx.stroke();
+  ctx.font='bold 16px serif'; ctx.fillText('정답: ②',30,240);
+  ansImgSrc=c.toDataURL('image/jpeg',0.9);
+  document.getElementById('ansPreviewWrap').classList.remove('hidden');
+  document.getElementById('ansPreviewImg').src=ansImgSrc;
+  document.getElementById('ansSubmitBtn').disabled=false;
+}
+
+async function submitAnswer() {
+  if (!currentQId) return;
+  await saveAnswer(currentQId, ansImgSrc, document.getElementById('teacherAnsText').value.trim());
+  closeOv(); renderTeacherList(); clearInterval(timerIv);
+  alert('답변 등록 완료! ✅');
+}
+
+// ── 초기화 ──
+renderPoints();
+renderHome();
+checkReady();
+</script>
+</body>
+</html>
