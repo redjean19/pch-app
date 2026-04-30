@@ -319,7 +319,7 @@ textarea::placeholder, input::placeholder { color: var(--t3); }
       <div class="stat-box"><div class="stat-val" id="totalCount">0</div><div class="stat-lbl">전체 질문</div></div>
       <div class="stat-box"><div class="stat-val" id="waitCount">0</div><div class="stat-lbl">답변 대기</div></div>
     </div>
-    <div class="sec">최근 질문</div>
+    <div class="sec" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer;">최근 질문 ↑</div>
     <div id="homeList"></div>
   </div>
 
@@ -477,7 +477,7 @@ textarea::placeholder, input::placeholder { color: var(--t3); }
 <!-- 선생님 화면 -->
 <div id="teacherWrap" class="hidden">
   <div class="screen on" id="t-home">
-    <div class="sec">답변 대기 목록</div>
+    <div class="sec" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer;">답변 대기 목록 ↑</div>
     <div id="teacherList"></div>
   </div>
 </div>
