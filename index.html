@@ -334,18 +334,14 @@ textarea::placeholder, input::placeholder { color: var(--t3); }
 
       <div id="uploadWrap">
         <div class="upload-area">
-          <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
+          <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(event)">
           <div class="upload-ico">📷</div>
           <div class="upload-txt">문제 사진 올리기</div>
-          <div class="upload-sub">탭해서 선택</div>
+          <div class="upload-sub">최대 5장 · 2장부터 장당 +1P 추가</div>
         </div>
       </div>
-      <div id="previewWrap" class="hidden">
-        <div class="preview-wrap">
-          <img id="previewImg" class="preview-img" src="" alt="">
-          <button class="preview-rm" onclick="removeImg()">✕</button>
-        </div>
-      </div>
+      <div id="previewList" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px;"></div>
+      <div id="photoCount" style="font-size:11px;font-family:var(--mono);color:var(--t3);margin-bottom:11px;display:none;"></div>
 
       <div class="sec">난이도 선택</div>
       <div class="diff-grid">
@@ -737,38 +733,85 @@ async function openQuestion(id) {
   else { activeQ=q; goTab('s-timer','tab-timer'); startTimer(q); }
 }
 
-// ── 파일 업로드 — Supabase Storage ──
-let imgFile = null;
+// ── 파일 업로드 — 다중 사진 (최대 5장) ──
+let imgFiles = []; // File 객체 배열
+let imgSrcs  = []; // base64 미리보기 배열
 
-function handleFile(e) {
-  const file = e.target.files[0]; if (!file) return;
-  imgFile = file;
-  const r = new FileReader();
-  r.onload = ev => {
-    imgSrc = ev.target.result;
-    document.getElementById('uploadWrap').classList.add('hidden');
-    document.getElementById('previewWrap').classList.remove('hidden');
-    document.getElementById('previewImg').src = imgSrc;
-    checkReady();
-  };
-  r.readAsDataURL(file);
+function handleFiles(e) {
+  const files = Array.from(e.target.files).slice(0, 5);
+  if (!files.length) return;
+  imgFiles = []; imgSrcs = [];
+  const list = document.getElementById('previewList');
+  list.innerHTML = '';
+
+  let loaded = 0;
+  files.forEach((file, i) => {
+    const r = new FileReader();
+    r.onload = ev => {
+      imgFiles[i] = file;
+      imgSrcs[i]  = ev.target.result;
+      loaded++;
+
+      // 미리보기 카드
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;width:calc(33% - 5px);';
+      wrap.innerHTML = `
+        <img src="${ev.target.result}" style="width:100%;border-radius:8px;aspect-ratio:1;object-fit:cover;border:1px solid var(--b1);">
+        <button onclick="removeOneImg(${i})" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border:none;border-radius:50%;width:22px;height:22px;color:white;cursor:pointer;font-size:11px;">✕</button>
+      `;
+      wrap.id = 'prev'+i;
+      list.appendChild(wrap);
+
+      if (loaded === files.length) {
+        imgSrc = imgSrcs[0]; // 호환용
+        updatePhotoCount();
+        checkReady();
+      }
+    };
+    r.readAsDataURL(file);
+  });
 }
+
+function removeOneImg(idx) {
+  imgFiles.splice(idx, 1);
+  imgSrcs.splice(idx, 1);
+  imgSrc = imgSrcs[0] || '';
+  // 미리보기 전체 다시 그리기
+  const list = document.getElementById('previewList');
+  list.innerHTML = '';
+  imgSrcs.forEach((src, i) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;width:calc(33% - 5px);';
+    wrap.innerHTML = `
+      <img src="${src}" style="width:100%;border-radius:8px;aspect-ratio:1;object-fit:cover;border:1px solid var(--b1);">
+      <button onclick="removeOneImg(${i})" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border:none;border-radius:50%;width:22px;height:22px;color:white;cursor:pointer;font-size:11px;">✕</button>
+    `;
+    wrap.id = 'prev'+i;
+    list.appendChild(wrap);
+  });
+  updatePhotoCount();
+  checkReady();
+}
+
+function updatePhotoCount() {
+  const cnt = imgSrcs.length;
+  const el  = document.getElementById('photoCount');
+  if (cnt === 0) { el.style.display='none'; return; }
+  const extra = Math.max(0, cnt-1);
+  const extraTxt = extra > 0 ? ` · 추가 -${extra}P` : '';
+  el.style.display = 'block';
+  el.textContent = `사진 ${cnt}장 선택됨${extraTxt}`;
+}
+
+function getPhotoCost() { return Math.max(0, imgSrcs.length - 1); }
 
 async function uploadImage(file, folder) {
   const ext  = file.name.split('.').pop();
-  const path = `${folder}/${Date.now()}.${ext}`;
+  const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
   if (error) throw error;
   const { data } = sb.storage.from('images').getPublicUrl(path);
   return data.publicUrl;
-}
-function removeImg() {
-  imgSrc = '';
-  document.getElementById('uploadWrap').classList.remove('hidden');
-  document.getElementById('previewWrap').classList.add('hidden');
-  document.getElementById('previewImg').src = '';
-  document.getElementById('fileInput').value = '';
-  checkReady();
 }
 
 // ── 난이도 ──
@@ -786,26 +829,36 @@ async function checkReady() {
   const banner  = document.getElementById('limitBanner');
   const btn     = document.getElementById('submitQBtn');
   if (pending>=5) { banner.classList.remove('hidden'); btn.disabled=true; }
-  else { banner.classList.add('hidden'); btn.disabled=!(imgSrc&&selectedDiff); }
+  else { banner.classList.add('hidden'); btn.disabled=!(imgSrcs.length>0&&selectedDiff); }
 }
 
 // ── 질문 등록 ──
 async function submitQuestion() {
   if (!imgSrc||!selectedDiff) return;
-  const cost = DIFF_COSTS[selectedDiff];
-  if (points<cost) { alert("포인트가 부족해요!"); return; }
-  points -= cost; savePoints(points); renderPoints();
+  const diffCost  = DIFF_COSTS[selectedDiff];
+  const photoCost = getPhotoCost();
+  const totalCost = diffCost + photoCost;
+  if (points < totalCost) { alert(`포인트가 부족해요! 필요: ${totalCost}P`); return; }
+  points -= totalCost; savePoints(points); renderPoints();
 
-  let finalImgUrl = imgSrc;
-  if (imgFile) {
-    try { finalImgUrl = await uploadImage(imgFile, "questions"); } catch(e) { console.error("upload fail:", e); }
+  // 사진 업로드 (최대 5장)
+  const imgUrls = [];
+  for (let i = 0; i < imgFiles.length; i++) {
+    try {
+      const url = await uploadImage(imgFiles[i], 'questions');
+      imgUrls.push(url);
+    } catch(e) {
+      imgUrls.push(imgSrcs[i]); // fallback base64
+    }
   }
 
   const now = Date.now();
   const q = {
-    id: now, img: finalImgUrl,
-    text: document.getElementById("qText").value.trim()||"막힌 부분이 있어요.",
-    diff: selectedDiff, status: "thinking",
+    id: now,
+    img:  imgUrls[0] || imgSrc,
+    imgs: imgUrls,
+    text: document.getElementById('qText').value.trim()||'막힌 부분이 있어요.',
+    diff: selectedDiff, status: 'thinking',
     createdAt: new Date().toISOString(),
     timerStart: now, totalSecs: 24*60*60,
     feedbacks: [], answer: null, tip: 0
@@ -814,16 +867,16 @@ async function submitQuestion() {
   await saveQ(q);
   activeQ = q;
 
-  imgSrc=""; imgFile=null; selectedDiff=0;
-  document.getElementById("uploadWrap").classList.remove("hidden");
-  document.getElementById("previewWrap").classList.add("hidden");
-  document.getElementById("previewImg").src="";
-  document.getElementById("fileInput").value="";
-  document.getElementById("qText").value="";
-  document.querySelectorAll(".diff-btn").forEach(b=>b.className="diff-btn");
-  document.getElementById("submitQBtn").disabled=true;
+  imgSrc=''; imgFiles=[]; imgSrcs=[]; selectedDiff=0;
+  document.getElementById('uploadWrap').classList.remove('hidden');
+  document.getElementById('previewList').innerHTML='';
+  document.getElementById('photoCount').style.display='none';
+  document.getElementById('fileInput').value='';
+  document.getElementById('qText').value='';
+  document.querySelectorAll('.diff-btn').forEach(b=>b.className='diff-btn');
+  document.getElementById('submitQBtn').disabled=true;
 
-  goTab("s-timer","tab-timer");
+  goTab('s-timer','tab-timer');
   startTimer(q);
 }
 
