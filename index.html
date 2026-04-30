@@ -750,7 +750,7 @@ function mkQItem(q, teacher) {
   else if (q.status==='thinking') badge = `<span class="q-status s-thinking">${h}h ${m}m</span>`;
   else badge = `<span class="q-status s-done">답변완료</span>`;
   const avStyle = teacher ? 'background:rgba(200,240,96,0.1);color:var(--accent)' : 'background:var(--s3);color:var(--t2)';
-  const fn = teacher ? `openTeacherQ(${q.id})` : `openQuestion(${q.id})`;
+  const fn = teacher ? `openTeacherQ('${q.id}')` : `openQuestion('${q.id}')`;
   const fb = q.feedbacks && q.feedbacks.length ? `<span style="font-size:10px;color:var(--t3);font-family:var(--mono)">피드백 ${q.feedbacks.length}개</span>` : '';
   return `<div class="q-item" onclick="${fn}">
     <div class="q-row">
@@ -769,8 +769,9 @@ function mkQItem(q, teacher) {
 // ── 질문 클릭 ──
 async function openQuestion(id) {
   window.scrollTo(0,0);
+  const numId = Number(id);
   const qs = await getQs();
-  const q  = qs.find(q => q.id===id);
+  const q  = qs.find(q => Number(q.id)===numId);
   if (!q) return;
   if (q.status==='done') { renderAnswerScreen(q); goTab('s-answer','tab-answer'); }
   else { activeQ=q; goTab('s-timer','tab-timer'); startTimer(q); }
@@ -1128,9 +1129,11 @@ async function renderTeacherList() {
 
 async function openTeacherQ(id) {
   window.scrollTo(0,0);
-  currentQId = id;
+  // id 타입 통일 (문자열/숫자 모두 처리)
+  const numId = Number(id);
+  currentQId = numId;
   const qs = await getQs();
-  const q  = qs.find(q=>q.id===id); if (!q) return;
+  const q  = qs.find(q=>Number(q.id)===numId); if (!q) return;
   const feedbacks = await getFeedbacksForQ(id);
   document.getElementById('ovTitle').textContent = `${DIFF_NAMES[q.diff]} 난이도 질문`;
   document.getElementById('ovQImg').innerHTML    = `<img src="${q.img||''}" style="width:100%;border-radius:12px;max-height:360px;object-fit:contain;background:var(--s2);padding:10px;">`;
