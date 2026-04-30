@@ -668,7 +668,9 @@ async function saveFeedback(questionId, text) {
 
 async function getAnswerForQ(questionId) {
   try {
-    const { data, error } = await sb.from('answers').select('*').eq('question_id', questionId).single();
+    // 숫자/문자열 둘 다 시도
+    const numId = Number(questionId);
+    const { data, error } = await sb.from('answers').select('*').eq('question_id', numId).single();
     if (error) return null;
     return data;
   } catch(e) { return null; }
