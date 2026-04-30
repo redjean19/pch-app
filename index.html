@@ -119,7 +119,7 @@ body {
 .s-thinking { background: rgba(96,200,240,0.15); color: var(--blue); }
 .s-done     { background: rgba(96,240,144,0.15); color: var(--green); }
 .q-body { display: flex; gap: 10px; align-items: flex-start; }
-.q-thumb { width: 200px; height: 200px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--b1); background: var(--s2); }
+.q-thumb { width: 300px; height: 300px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--b1); background: var(--s2); }
 .q-txt { font-size: 13px; color: var(--t2); line-height: 1.5; flex: 1; }
 .q-foot { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
 .diff-tag { font-size: 10px; font-family: var(--mono); padding: 2px 7px; border-radius: 20px; }
@@ -781,7 +781,7 @@ function handleFiles(e) {
     const r = new FileReader();
     r.onload = ev => {
       imgFiles[i] = file;
-      fixOrientation(ev.target.result, file.type, (fixedSrc) => {
+      fixOrientation(ev.target.result, file, (fixedSrc) => {
         imgSrcs[i] = fixedSrc;
         loaded++;
         renderPerPhotoItem(i, fixedSrc);
@@ -871,17 +871,64 @@ function getTotalCost() {
 }
 
 // ── EXIF orientation 보정 ──
-function fixOrientation(src, mimeType, callback) {
-  const img = new Image();
-  img.onload = function() {
-    const canvas = document.createElement('canvas');
-    canvas.width  = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    callback(canvas.toDataURL(mimeType || 'image/jpeg', 0.92));
+function getExifOrientation(file, callback) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const view = new DataView(e.target.result);
+    if (view.getUint16(0, false) !== 0xFFD8) { callback(-2); return; }
+    const length = view.byteLength;
+    let offset = 2;
+    while (offset < length) {
+      if (view.getUint16(offset+2, false) <= 8) { callback(-1); return; }
+      const marker = view.getUint16(offset, false);
+      offset += 2;
+      if (marker === 0xFFE1) {
+        if (view.getUint32(offset+=2, false) !== 0x45786966) { callback(-1); return; }
+        const little = view.getUint16(offset+=6, false) === 0x4949;
+        offset += view.getUint32(offset+4, little);
+        const tags = view.getUint16(offset, little);
+        offset += 2;
+        for (let i = 0; i < tags; i++) {
+          if (view.getUint16(offset+(i*12), little) === 0x0112) {
+            callback(view.getUint16(offset+(i*12)+8, little)); return;
+          }
+        }
+      } else if ((marker & 0xFF00) !== 0xFF00) { break; }
+      else { offset += view.getUint16(offset, false); }
+    }
+    callback(-1);
   };
-  img.src = src;
+  reader.readAsArrayBuffer(file.slice(0, 65536));
+}
+
+function fixOrientation(src, file, callback) {
+  getExifOrientation(file, function(orientation) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const w = img.naturalWidth, h = img.naturalHeight;
+      // orientation에 따라 캔버스 크기 및 회전 설정
+      if ([5,6,7,8].indexOf(orientation) > -1) {
+        canvas.width = h; canvas.height = w;
+      } else {
+        canvas.width = w; canvas.height = h;
+      }
+      switch(orientation) {
+        case 2: ctx.transform(-1,0,0,1,w,0); break;
+        case 3: ctx.transform(-1,0,0,-1,w,h); break;
+        case 4: ctx.transform(1,0,0,-1,0,h); break;
+        case 5: ctx.transform(0,1,1,0,0,0); break;
+        case 6: ctx.transform(0,1,-1,0,h,0); break;
+        case 7: ctx.transform(0,-1,-1,0,h,w); break;
+        case 8: ctx.transform(0,-1,1,0,0,w); break;
+        default: break;
+      }
+      ctx.drawImage(img, 0, 0);
+      callback(canvas.toDataURL('image/jpeg', 0.92));
+    };
+    img.src = src;
+  });
 }
 
 async function uploadImage(file, folder) {
