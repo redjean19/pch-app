@@ -434,7 +434,10 @@ textarea::placeholder, input::placeholder { color: var(--t3); }
         </div>
 
         <div id="vHand">
-          <img id="ansHandImg" style="width:100%;border-radius:8px;display:none;cursor:zoom-in;" src="" alt="" onclick="openZoom(this.src)">
+          <div style="position:relative;">
+            <img id="ansHandImg" style="width:100%;border-radius:8px;display:none;cursor:zoom-in;" src="" alt="" onclick="openZoom(this.src)">
+            <button id="editAnsBtn" onclick="editAnswer()" style="display:none;position:absolute;top:8px;right:8px;background:rgba(200,240,96,0.9);border:none;border-radius:7px;padding:6px 12px;font-size:12px;color:#0a0a0a;cursor:pointer;font-family:var(--sans);font-weight:600;">✏️ 수정</button>
+          </div>
           <div id="ansHandMock" class="answer-mock">✏️ 선생님 손글씨 답변 사진</div>
         </div>
         <div id="vText" class="hidden">
@@ -467,6 +470,10 @@ textarea::placeholder, input::placeholder { color: var(--t3); }
       </div>
 
       <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn btn-ghost" style="flex:1;margin-top:0;border-color:rgba(200,240,96,0.3);color:var(--accent);" onclick="editAnswer()">✏️ 답변 수정</button>
+        <button class="btn btn-ghost" style="flex:1;margin-top:0;border-color:rgba(240,96,96,0.3);color:var(--red);" onclick="deleteAnswer()">🗑 답변 삭제</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
         <button class="btn btn-ghost" style="flex:1;margin-top:0;" onclick="goTabWithHistory('s-home','tab-home');setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),100);">질문 목록 ↑</button>
         <button class="btn btn-primary" style="flex:1;" onclick="goTabWithHistory('s-ask','tab-ask')">새 질문</button>
       </div>
@@ -1053,6 +1060,9 @@ function renderAnswerScreen(q) {
   const txt = (q.answer&&q.answer.text) ? q.answer.text : '텍스트 답변이 없어요.';
   document.getElementById('ansTextContent').textContent = txt;
   document.getElementById('ansBothText').textContent    = txt;
+  // 선생님 뷰일 때만 수정 버튼 표시
+  const editBtn = document.getElementById('editAnsBtn');
+  if (editBtn) editBtn.style.display = (isTeacher && hasImg) ? 'block' : 'none';
 }
 
 function setView(v, btn) {
@@ -1060,6 +1070,30 @@ function setView(v, btn) {
   document.getElementById('v'+v).classList.remove('hidden');
   document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
+}
+
+// ── 답변 수정 / 삭제 ──
+async function editAnswer() {
+  const qs   = await getQs();
+  const done = qs.find(q => q.status === 'done');
+  if (!done) return;
+  // 선생님 오버레이 열기 (수정 모드)
+  toggleRole(); // 선생님 뷰로
+  await openTeacherQ(done.id);
+}
+
+async function deleteAnswer() {
+  if (!confirm('답변을 삭제하시겠습니까?')) return;
+  const qs   = await getQs();
+  const done = qs.find(q => q.status === 'done');
+  if (!done) return;
+  try {
+    await sb.from('answers').delete().eq('question_id', done.id);
+    await sb.from('questions').update({ status: 'thinking', timer_start: Date.now() }).eq('id', done.id);
+    alert('답변이 삭제됐습니다.');
+    goTabWithHistory('s-home', 'tab-home');
+    renderHome();
+  } catch(e) { console.error(e); alert('삭제 실패'); }
 }
 
 // ── 후원 ──
