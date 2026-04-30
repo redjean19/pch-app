@@ -469,7 +469,7 @@ textarea::placeholder, input::placeholder { color: var(--t3); }
         <div class="hint-badge badge-open-blue">해금</div>
       </div>
 
-      <div style="display:flex;gap:8px;margin-top:4px;">
+      <div id="teacherOnlyBtns" style="display:none;gap:8px;margin-top:4px;">
         <button class="btn btn-ghost" style="flex:1;margin-top:0;border-color:rgba(200,240,96,0.3);color:var(--accent);" onclick="editAnswer()">✏️ 답변 수정</button>
         <button class="btn btn-ghost" style="flex:1;margin-top:0;border-color:rgba(240,96,96,0.3);color:var(--red);" onclick="deleteAnswer()">🗑 답변 삭제</button>
       </div>
@@ -712,8 +712,16 @@ function goTab(screenId, tabId) {
   if (screenId === 's-home')   renderHome();
   if (screenId === 's-timer')  renderTimer();
   if (screenId === 's-answer') {
-    const done = getQs().find(q => q.status === 'done');
-    if (done) renderAnswerScreen(done);
+    getQs().then(qs => {
+      const done = qs.find(q => q.status === 'done');
+      if (done) {
+        // answers 테이블에서 답변 불러오기
+        getAnswerForQ(done.id).then(ans => {
+          done.answer = ans ? { img: ans.img_url, text: ans.text } : null;
+          renderAnswerScreen(done);
+        });
+      }
+    });
   }
 }
 
@@ -1060,9 +1068,11 @@ function renderAnswerScreen(q) {
   const txt = (q.answer&&q.answer.text) ? q.answer.text : '텍스트 답변이 없어요.';
   document.getElementById('ansTextContent').textContent = txt;
   document.getElementById('ansBothText').textContent    = txt;
-  // 선생님 뷰일 때만 수정 버튼 표시
+  // 선생님 뷰일 때만 수정/삭제 버튼 표시
   const editBtn = document.getElementById('editAnsBtn');
   if (editBtn) editBtn.style.display = (isTeacher && hasImg) ? 'block' : 'none';
+  const teacherBtns = document.getElementById('teacherOnlyBtns');
+  if (teacherBtns) teacherBtns.style.display = isTeacher ? 'flex' : 'none';
 }
 
 function setView(v, btn) {
