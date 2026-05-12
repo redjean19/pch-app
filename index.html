@@ -335,7 +335,7 @@ textarea::placeholder, input::placeholder { color: var(--t3); }
 
       <div class="banner hidden" id="limitBanner">⚠ 미답변 질문이 5개입니다. 답변 후 새 질문을 올릴 수 있어요.</div>
       <div class="banner hidden" id="multiProbBanner" style="background:rgba(240,96,96,0.08);border-color:rgba(240,96,96,0.2);color:var(--red);">⚠ 한 문제씩 사진을 찍어서 업로드 해주세요</div>
-
+<div class="banner hidden" id="maxPhotoBanner" style="background:rgba(240,96,96,0.08);border-color:rgba(240,96,96,0.2);color:var(--red);">⚠ 사진은 최대 5장까지 업로드 가능합니다</div>
       <div id="uploadWrap">
         <div class="upload-area">
           <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(event)">
@@ -787,7 +787,14 @@ let imgSrcs  = []; // base64 미리보기 배열
 let perPhotoDiffs = [];
 
 function handleFiles(e) {
-  const files = Array.from(e.target.files).slice(0, 5);
+ const allFiles = Array.from(e.target.files);
+document.getElementById('maxPhotoBanner').classList.add('hidden');
+if (allFiles.length > 5) {
+  document.getElementById('maxPhotoBanner').classList.remove('hidden');
+  e.target.value = '';
+  return;
+}
+const files = allFiles;
   if (!files.length) return;
   imgFiles = []; imgSrcs = []; perPhotoDiffs = [];
   document.getElementById('perPhotoList').innerHTML = '';
